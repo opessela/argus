@@ -1,0 +1,3 @@
+ucsmsdk
+websocket
+acitoolkit
