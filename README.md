@@ -25,7 +25,7 @@ The easiest way to get started is using Docker
 git clone https://github.com/kecorbin/argus
 cd argus
 docker build -t argus .
-docker run -ti -e APIC_LOGIN=admin -e APIC_URL=http://myapic -e APIC_PASSWORD=supersecret argus python monitor.py
+docker run -ti -e APIC_LOGIN=admin -e APIC_URL=http://myapic -e APIC_PASSWORD=supersecret argus python argus.py
 
 ```
 

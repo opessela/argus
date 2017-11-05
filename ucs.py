@@ -8,7 +8,15 @@ from ucsmsdk.mometa.fabric.FabricPooledVlan import FabricPooledVlan
 from ucsmsdk.ucsexception import UcsException
 import config
 
+
 def add_vlan(handle, vlan_id, name):
+    """
+    add vlan to UCS Pod
+    :param handle: ucsmsdk handler
+    :param vlan_id: str vlan number
+    :param name: str vlan name
+    :return:
+    """
     mo = FabricVlan(parent_mo_or_dn="fabric/lan",
                     sharing="none",
                     name=name, id=vlan_id)
@@ -19,7 +27,15 @@ def add_vlan(handle, vlan_id, name):
     except UcsException as e:
         print e
 
+
 def remove_vlan(handle, vlan_id, name):
+    """
+    removes vlan from UCS pod
+    :param handle: ucsmsdk handler
+    :param vlan_id: str vlan number
+    :param name: str vlan name
+    :return:
+    """
     mo = FabricVlan(parent_mo_or_dn="fabric/lan",
                     sharing="none",
                     name=name, id=vlan_id)
@@ -31,7 +47,8 @@ def remove_vlan(handle, vlan_id, name):
 
     return mo
 
-def undo_cool_shit(handle, vlan_number):
+
+def deprovision_ucs_pod(handle, vlan_number):
     vlan_name = config.OBJECT_PREFIX.format(vlan_number)
     dn = 'fabric/lan/net-group-DVS-01/net-{}'.format(vlan_name)
     mo = handle.query_dn(dn)
@@ -44,37 +61,20 @@ def undo_cool_shit(handle, vlan_number):
         print "Could not find, likely already cleaned up from previous link"
 
 
-def do_cool_shit(handle, vlan_number):
+def provision_ucs_pod(handle, vlan_number):
     # TODO remove constant
     vlan_name = config.OBJECT_PREFIX.format(vlan_number)
 
     # Add vlan globally
     add_vlan(handle, vlan_number, vlan_name)
 
-    # this works, moving to groups now
-    # uplink1 = FabricEthVlanPc(vlan, 'B', '4')
-    # handle.add_mo(uplink1)
-    #
-    # uplink2 = FabricEthVlanPc(vlan, 'A', '3')
-    # handle.add_mo(uplink2)
-    # handle.commit()
-    #
-    #
-    # eth2_template = VnicEtherIf('org-root/lan-conn-templ-ESX-C0-eth2', vlan_name)
-    # handle.add_mo(eth2_template)
-    # handle.commit()
-    #
-    # eth3_template = VnicEtherIf('org-root/lan-conn-templ-ESX-C0-eth3', vlan_name)
-    # handle.add_mo(eth3_template)
-    # handle.commit()
-
-    # TODO remove constant
-    add_to_pool = FabricPooledVlan('fabric/lan/net-group-DVS-01', vlan_name)
+    # Add vlan to pool
     try:
+        # TODO remove constant
+
+        add_to_pool = FabricPooledVlan('fabric/lan/net-group-DVS-01', vlan_name)
         handle.add_mo(add_to_pool)
         handle.commit()
 
     except UcsException as e:
         print e
-
-
