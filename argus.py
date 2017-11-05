@@ -5,7 +5,7 @@ import requests
 from acitoolkit import Session, Credentials, Subscriber, BaseACIObject, ConcreteBD
 from ucsmsdk.ucshandle import UcsHandle
 from ucs import provision_ucs_pod, deprovision_ucs_pod
-from aci import *
+from aci import VlanBinding, Topology
 from utils import run_async
 import config
 
@@ -39,9 +39,7 @@ if __name__ == "__main__":
     if apic.login().ok:
         print("Connected to ACI")
 
-
-
-    topology = get_topology(apic)
+    topology = Topology.get(apic)
 
     print("Creating subscription to ACI fabric")
     print("=" * 80)
@@ -51,19 +49,17 @@ if __name__ == "__main__":
     while True:
         if VlanBinding.has_events(apic):
             binding = VlanBinding.get_event(apic)
-            if binding['status'] == 'deleted':
-                if 'vlan-' in binding['dn']:
-                    dn = binding['dn']
+            if binding.status == 'deleted':
+                if 'vlan-' in binding.dn:
+                    dn = binding.dn
                     try:
-                        print('deleting {}'.format(dn))
-                        vlan_number = get_vlan_number_from_dn(dn)
-                        node = get_node_id_from_dn(dn)
-                        port = get_port_from_pathdn(dn)
-                        ucsm_ip = topology[node][port]
-                        ucsm_ip = config.UCSM_VIP_MAP[ucsm_ip]
-
-                        send_event(binding['status'], node, port, vlan_number, ucsm_ip)
-                        print("We will de-provision on {}".format(ucsm_ip))
+                        print('Delete message received {}'.format(dn))
+                        vlan_number = binding.vlan
+                        node = binding.node
+                        port = binding.port
+                        ucsm_ip = config.UCSM_VIP_MAP[topology[node][port]]
+                        send_event(binding.status, node, port, vlan_number, ucsm_ip)
+                        print("Deprovisioning on {}".format(ucsm_ip))
                         handle = UcsHandle(ucsm_ip, config.UCSM_LOGIN, config.UCSM_PASSWORD)
                         handle.login()
                         deprovision_ucs_pod(handle, vlan_number)
@@ -74,20 +70,19 @@ if __name__ == "__main__":
                     except Exception as e:
                         print "Unhandled Exception {}".format(e)
 
-            elif binding['status'] == 'created':
+            elif binding.status == 'created':
+
                 print 'created'
-                if 'vlan-' in binding['dn']:
-                    dn = binding['dn']
+                if 'vlan-' in binding.dn:
+                    dn = binding.dn
                     try:
                         print('deleting {}'.format(dn))
-                        vlan_number = get_vlan_number_from_dn(dn)
-                        node = get_node_id_from_dn(dn)
-                        port = get_port_from_pathdn(dn)
-                        ucsm_ip = topology[node][port]
-                        ucsm_ip = config.UCSM_VIP_MAP[ucsm_ip]
-                        send_event(binding['status'], node, port, vlan_number, ucsm_ip)
-
-                        print("We will de-provision on {}".format(ucsm_ip))
+                        vlan_number = binding.vlan
+                        node = binding.node
+                        port = binding.port
+                        ucsm_ip = config.UCSM_VIP_MAP[topology[node][port]]
+                        send_event(binding.status, node, port, vlan_number, ucsm_ip)
+                        print("Provisioning on {}".format(ucsm_ip))
                         handle = UcsHandle(ucsm_ip, config.UCSM_LOGIN, config.UCSM_PASSWORD)
                         handle.login()
                         provision_ucs_pod(handle, vlan_number)
