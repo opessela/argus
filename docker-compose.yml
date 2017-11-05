@@ -1,0 +1,43 @@
+version: '2'
+services:
+
+  web:
+    restart: always
+    build: .
+    command: "python api.py"
+    links:
+      - mongo:mongo
+    depends_on:
+      - mongo
+    volumes:
+      - ./src:/src
+    expose:
+      - "5000"
+    ports:
+      - "5000:5000"
+    environment:
+      CALLBACK_API: http://web:5000/api/upgrade
+      LOGBIN_API: http://web:5000/api/logbin
+      REGIONS_API: http://web:5000/api/regions
+      IMAGES_API: http://web:5000/api/images
+
+  argus:
+    restart: always
+    build: .
+    command: "python argus.py"
+    links:
+      - mongo:mongo
+    depends_on:
+      - mongo
+    volumes:
+      - ./src:/src
+    environment:
+      APIC_LOGIN: admin
+      APIC_URL: http://10.94.140.72
+      APIC_PASSWORD: ins3965!
+      ARGUS_BASE_API: http://web:5000/api
+
+  mongo:
+    image: mongo:latest
+    expose:
+      - 27017

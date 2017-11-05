@@ -1,44 +1,29 @@
+import os
+import json
+import requests
+
 from acitoolkit import Session, Credentials, Subscriber, BaseACIObject, ConcreteBD
 from ucsmsdk.ucshandle import UcsHandle
-import websocket
-import thread
-import time
-import json
 from ucs import provision_ucs_pod, deprovision_ucs_pod
 from aci import *
-
+from utils import run_async
 import config
 
+HEADERS = {"Content-Type": "application/json"}
 
-class VlanBinding(BaseACIObject):
-
-    @classmethod
-    def _get_apic_classes(cls):
-        """
-        Get the APIC classes used by this acitoolkit class.
-        :returns: list of strings containing APIC class names
-        """
-        return ['l2RsPathDomAtt']
-
-    @classmethod
-    def get_event(cls, session):
-        """
-        Gets the event that is pending for this class.  Events are
-        returned in the form of objects.  Objects that have been deleted
-        are marked as such.
-
-        :param session:  the instance of Session used for APIC communication
-        """
-        urls = cls._get_subscription_urls()
-        for url in urls:
-            if not session.has_events(url):
-                continue
-            event = session.get_event(url)
-            for class_name in cls._get_apic_classes():
-                if class_name in event['imdata'][0]:
-                    break
-            attributes = event['imdata'][0][class_name]['attributes']
-            return attributes
+@run_async
+def send_event(action, node, port, vlan, ucsm):
+    argus_api = os.getenv("ARGUS_BASE_API") + '/events'
+    data = {
+        "action": action,
+        "vlan": vlan,
+        "node": node,
+        "port": port,
+        "ucsm": ucsm
+        }
+    resp = requests.post(argus_api, headers=HEADERS, data=json.dumps(data))
+    if not resp.ok:
+        print "Error contacting API: {}".format(resp.status_code)
 
 
 if __name__ == "__main__":
@@ -54,23 +39,9 @@ if __name__ == "__main__":
     if apic.login().ok:
         print("Connected to ACI")
 
-    # Discover topology
-    lldp_adj = apic.get('/api/class/lldpAdjEp.json').json()['imdata']
-    topology = dict()
-    for adj in lldp_adj:
-        node = get_node_id_from_dn(adj['lldpAdjEp']['attributes']['dn'])
-        if node not in topology.keys():
-            topology[node] = dict()
 
-        port = get_port_from_lldp_dn(adj['lldpAdjEp']['attributes']['dn'])
-        mgmt_ip = adj['lldpAdjEp']['attributes']['mgmtIp']
-        topology[node][port] = mgmt_ip
 
-    for adj in lldp_adj:
-        node = get_node_id_from_dn(adj['lldpAdjEp']['attributes']['dn'])
-        port = get_port_from_lldp_dn(adj['lldpAdjEp']['attributes']['dn'])
-        mgmt_ip = adj['lldpAdjEp']['attributes']['mgmtIp']
-        topology[(node, port)] = mgmt_ip
+    topology = get_topology(apic)
 
     print("Creating subscription to ACI fabric")
     print("=" * 80)
@@ -91,6 +62,7 @@ if __name__ == "__main__":
                         ucsm_ip = topology[node][port]
                         ucsm_ip = config.UCSM_VIP_MAP[ucsm_ip]
 
+                        send_event(binding['status'], node, port, vlan_number, ucsm_ip)
                         print("We will de-provision on {}".format(ucsm_ip))
                         handle = UcsHandle(ucsm_ip, config.UCSM_LOGIN, config.UCSM_PASSWORD)
                         handle.login()
@@ -113,6 +85,7 @@ if __name__ == "__main__":
                         port = get_port_from_pathdn(dn)
                         ucsm_ip = topology[node][port]
                         ucsm_ip = config.UCSM_VIP_MAP[ucsm_ip]
+                        send_event(binding['status'], node, port, vlan_number, ucsm_ip)
 
                         print("We will de-provision on {}".format(ucsm_ip))
                         handle = UcsHandle(ucsm_ip, config.UCSM_LOGIN, config.UCSM_PASSWORD)

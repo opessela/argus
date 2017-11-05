@@ -1,3 +1,4 @@
 ucsmsdk
-websocket
 acitoolkit
+flask-restful
+pymongo
