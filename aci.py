@@ -73,6 +73,100 @@ class VlanBinding(BaseACIObject):
     def status(self):
         return self._attributes['status']
 
+
+class DistributedVirtualSwitch(BaseACIObject):
+    """
+    The logical node, which represents a virtual switch across hypervisors.
+    For example, when implementing VMWare, this object represents VMware vSphere Distributed Switch (VDS).
+    """
+
+    @classmethod
+    def _get_apic_classes(cls):
+        """
+        Get the APIC classes used by this acitoolkit class.
+        :returns: list of strings containing APIC class names
+        """
+        return ['hvsLNode']
+
+    @classmethod
+    def get(cls, session, name=None):
+        """
+        Gets all of the virtual switches from the APIC.
+        :param session: the instance of Session used for APIC communication
+        :returns: a list of vswitch objects
+        """
+        url = '/api/class/hvsLNode.json'
+        data = session.get(url).json()['imdata']
+        apic_class = cls._get_apic_classes()[0]
+        resp = []
+        for object_data in data:
+            name = str(object_data[apic_class]['attributes']['name'])
+            obj = cls(name)
+            attribute_data = object_data[apic_class]['attributes']
+            obj._populate_from_attributes(attribute_data)
+            resp.append(obj)
+
+        return resp
+
+
+class PortGroup(BaseACIObject):
+    """
+    The extended policies, which are common policies for VM interfaces.
+    For example, when implementing VMware,
+    this represents the distributed virtual port group.
+    """
+
+    def _populate_from_attributes(self, attributes):
+        """Fills in an object with the desired attributes.
+           Overridden by inheriting classes to provide the specific attributes
+           when getting objects from the APIC.
+        """
+        self.vlan = str(attributes['startEncap']).split('vlan-')[1]
+        self.dn = str(attributes['dn'])
+        self.descr = str(attributes['descr'])
+
+    @classmethod
+    def _get_apic_classes(cls):
+        """
+        Get the APIC classes used by this acitoolkit class.
+        :returns: list of strings containing APIC class names
+        """
+        return ['hvsExtPol']
+
+    @classmethod
+    def get(cls, session, name=None, encap=None):
+        """
+        Gets all of the virtual switches from the APIC.
+        :param session: the instance of Session used for APIC communication
+        :returns: a list of vswitch objects
+        """
+        if name:
+            url = '/api/node/class/hvsExtPol.json?query-target-filter=and(eq(hvsExtPol.name,"{}"))'.format(name)
+        elif encap:
+            url = '/api/node/class/hvsExtPol.json?query-target-filter=and(eq(hvsExtPol.startEncap,"vlan-{}"))'.format(encap)
+        else:
+            url = '/api/class/{}.json'.format(cls._get_apic_classes()[0])
+
+
+        data = session.get(url).json()['imdata']
+        apic_class = cls._get_apic_classes()[0]
+        resp = []
+        print data
+        for object_data in data:
+            name = str(object_data[apic_class]['attributes']['name'])
+            obj = cls(name)
+            attribute_data = object_data[apic_class]['attributes']
+            obj._populate_from_attributes(attribute_data)
+            resp.append(obj)
+
+        if name and len(resp) == 1:
+            return resp[0]
+        elif encap and len(resp) == 1:
+            return resp[0]
+        else:
+            return resp
+
+
 class Topology(dict):
 
     @classmethod
