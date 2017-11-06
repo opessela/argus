@@ -151,7 +151,6 @@ class PortGroup(BaseACIObject):
         data = session.get(url).json()['imdata']
         apic_class = cls._get_apic_classes()[0]
         resp = []
-        print data
         for object_data in data:
             name = str(object_data[apic_class]['attributes']['name'])
             obj = cls(name)
