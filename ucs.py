@@ -60,6 +60,10 @@ def deprovision_ucs_pod(handle, vlan_name, vlan_number):
         handle.commit()
         remove_vlan(handle, vlan_number, vlan_name)
 
+def get_vlan_id_by_name(handle, vlan_name):
+    vlan = handle.query_dn('fabric/lan/net-{}'.format(vlan_name))
+    if vlan:
+        return vlan.id
 
 def provision_ucs_pod(handle, vlan_name, vlan_number):
     # UCS vlans can only be 32 chars and cannot contain '|'

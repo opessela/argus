@@ -79,7 +79,7 @@ class VlanBinding(BaseACIObject):
             vlan = self._attributes['dn'].split('vlan-[vlan-')[1].split(']')[0]
             return vlan
         except IndexError:
-            print "Could not derive vlan for DN {}".format(self.dn)
+            return None
 
 
     @property
@@ -199,10 +199,10 @@ class PortGroup(BaseACIObject):
             return resp
 
 
-class Topology(dict):
+class ManagedTopology(dict):
 
     @classmethod
-    def get(cls, session):
+    def get(cls, session, vip_map):
         # Discover topology
         lldp_adj = session.get('/api/class/lldpAdjEp.json').json()['imdata']
         topology = dict()
@@ -213,7 +213,8 @@ class Topology(dict):
 
             port = get_port_from_lldp_dn(adj['lldpAdjEp']['attributes']['dn'])
             mgmt_ip = adj['lldpAdjEp']['attributes']['mgmtIp']
-            topology[node][port] = mgmt_ip
+            if mgmt_ip in vip_map.keys():
+                topology[node][port] = mgmt_ip
         return topology
 
 def get_vlan_number_from_dn(dn):
@@ -263,3 +264,10 @@ def get_port_from_lldp_dn(dn):
         return mod_port
     else:
         return None
+
+def fixup_epg_name(name):
+    # Tenant-app-epg becomes tn-Tenant/ap-app/epg-epg
+    words = name.split('-')
+    dn = "tn-{}/ap-{}/epg-{}".format(words[0], words[1], "-".join(words[2:]))
+    return dn
+

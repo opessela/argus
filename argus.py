@@ -1,15 +1,67 @@
 import os
 import json
 import requests
-
-from acitoolkit import Session, Credentials, Subscriber, BaseACIObject, ConcreteBD
+from acitoolkit import Session, Credentials
 from ucsmsdk.ucshandle import UcsHandle
-from ucs import provision_ucs_pod, deprovision_ucs_pod
-from aci import VlanBinding, Topology, PortGroup
+from ucs import provision_ucs_pod, deprovision_ucs_pod, get_vlan_id_by_name
+from aci import VlanBinding, ManagedTopology, PortGroup, fixup_epg_name
 from utils import run_async
 import config
 
 HEADERS = {"Content-Type": "application/json"}
+
+def perform_garbage_collection():
+    """
+    periodically ran to ensure that no unused vlans are provisioned on UCS domains
+    Returns:
+
+    """
+    print("Starting Garbage Collection...")
+    print("Gathering DVS information")
+    port_groups = PortGroup.get(apic)
+    port_groups_by_vlan = dict()
+    port_groups_by_name = dict()
+    for item in port_groups:
+        port_groups_by_name[item.name.replace('|','-')] = item.vlan
+        port_groups_by_vlan[item.vlan] = item.name.replace('|','-')
+
+    print("Retrieving UCS configuration")
+    provisioned_vlans = dict()
+    for vip in config.UCS.keys():
+
+        handle = UcsHandle(vip, config.UCSM_LOGIN, config.UCSM_PASSWORD)
+        handle.login()
+        members = handle.query_children(in_dn=config.VLAN_GROUP_DN, class_id='FabricPooledVlan')
+        epgs = [vlan.name for vlan in members]
+        provisioned_vlans[vip] = epgs
+
+        fis = config.UCS[vip]
+        vlans = epgs
+        for fi_mgmt_ip in fis.values():
+            bindings_for_fi = get_bindings_for_fi(apic, fi_mgmt_ip)
+            print("Reconciling vlans {} with {}".format(vlans, bindings_for_fi))
+            for vlan in vlans:
+                vlan_dn = fixup_epg_name(vlan)
+                is_valid = False
+                for b in bindings_for_fi:
+                    if vlan_dn in b['fvDyPathAtt']['attributes']['dn']:
+                        is_valid = True
+                if is_valid:
+                    print "VLAN {} has active bindings, leaving it alone".format(vlan)
+                else:
+                    vlan_id = get_vlan_id_by_name(handle, vlan)
+                    print "We should probably delete vlan {} encap {}".format(vlan, vlan_id)
+                    deprovision_ucs_pod(handle, vlan, vlan_id)
+
+
+        handle.logout()
+        print("Garbage Collection Completed")
+
+def get_bindings_for_fi(session, fi):
+    url = '/api/node/class/fvDyPathAtt.json?query-target-filter=' \
+          'and(eq(fvDyPathAtt.targetDn,"topology/pod-1/node-102/sys/lsnode-{}"))'.format(fi)
+    resp = session.get(url)
+    return resp.json()['imdata']
 
 @run_async
 def binding_event_handler(session, binding):
@@ -39,7 +91,6 @@ def binding_event_handler(session, binding):
     else:
         print "should only see this at startup: {}".format(binding.dn)
 
-
 @run_async
 def send_event(action, epg, node, port, vlan, ucsm):
     argus_api = os.getenv("ARGUS_BASE_API") + '/events'
@@ -68,8 +119,10 @@ if __name__ == "__main__":
 
     if apic.login().ok:
         print("Connected to ACI")
+    topology = ManagedTopology.get(apic, config.UCSM_VIP_MAP)
 
-    topology = Topology.get(apic)
+
+    perform_garbage_collection()
 
     print("Creating subscription to ACI fabric")
     print("=" * 80)
@@ -79,5 +132,8 @@ if __name__ == "__main__":
     while True:
         if VlanBinding.has_events(apic):
             binding = VlanBinding.get_event(apic)
-            binding_event_handler(apic, binding)
+            # Determine if it's already provisioned
+            already_provsioned = False
+            if not already_provsioned:
+                binding_event_handler(apic, binding)
 
