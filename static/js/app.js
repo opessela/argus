@@ -2,7 +2,6 @@
  * Created by kecorbin on 10/6/17.
  */
 
-
 var events = $('#events-table').DataTable( {
     "ajax": {
             "type" : "GET",
@@ -15,6 +14,8 @@ var events = $('#events-table').DataTable( {
     "columns": [
                     { "data": "action" },
                     { "data": "id" },
+                    { "data": "timestamp"},
+                    { "data": "epg"},
                     { "data": "node"},
                     { "data": "port" },
                     { "data": "vlan" },

@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, make_response
 from flask_restful import Resource, Api
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -6,9 +6,20 @@ from bson.json_util import dumps
 
 mongo = MongoClient("mongo")
 
+def output_json(obj, code, headers=None):
+    """
+    This is needed because we need to use a custom JSON converter
+    that knows how to translate MongoDB types to JSON.
+    """
+    resp = make_response(dumps(obj), code)
+    resp.headers.extend(headers or {})
 
+    return resp
+
+DEFAULT_REPRESENTATIONS = {'application/json': output_json}
 app = Flask(__name__)
 api = Api(app)
+api.representations = DEFAULT_REPRESENTATIONS
 
 
 class HelloWorld(Resource):
@@ -33,10 +44,12 @@ class Events(Resource):
         # new event received via api
         else:
             if request.json:
-                print request.json
                 object_id = ObjectId()
+                print object_id.generation_time
                 data = {"id": str(object_id),
                         "action": request.json['action'],
+                        "timestamp": object_id.generation_time.isoformat(),
+                        "epg": request.json['epg'],
                         "vlan": request.json['vlan'],
                         "node": request.json['node'],
                         "port": request.json['port'],

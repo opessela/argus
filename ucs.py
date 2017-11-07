@@ -1,9 +1,4 @@
-from ucsmsdk.ucshandle import UcsHandle
 from ucsmsdk.mometa.fabric.FabricVlan import FabricVlan
-from ucsmsdk.mometa.fabric.FabricEthVlanPc import FabricEthVlanPc
-from ucsmsdk.mometa.vnic.VnicEtherIf import VnicEtherIf
-from ucsmsdk.mometa.vnic.VnicLanConnTempl import VnicLanConnTempl
-from ucsmsdk.mometa.fabric.FabricNetGroup import FabricNetGroup
 from ucsmsdk.mometa.fabric.FabricPooledVlan import FabricPooledVlan
 from ucsmsdk.ucsexception import UcsException
 import config
@@ -20,12 +15,21 @@ def add_vlan(handle, vlan_id, name):
     mo = FabricVlan(parent_mo_or_dn="fabric/lan",
                     sharing="none",
                     name=name, id=vlan_id)
-    try:
-        handle.add_mo(mo)
-        handle.commit()
+
+    exists = handle.query_dn(mo.dn)
+
+    if exists:
+        return
+    else:
+        try:
+            handle.add_mo(mo)
+            handle.commit()
+        except UcsException as e:
+            if 'already exists' in str(e):
+                pass
+            else:
+                raise e
         return mo
-    except UcsException as e:
-        print e
 
 
 def remove_vlan(handle, vlan_id, name):
@@ -36,45 +40,44 @@ def remove_vlan(handle, vlan_id, name):
     :param name: str vlan name
     :return:
     """
+
     mo = FabricVlan(parent_mo_or_dn="fabric/lan",
                     sharing="none",
                     name=name, id=vlan_id)
-    try:
-        handle.remove_mo(mo)
-        handle.commit()
-    except UcsException as e:
-        print e
-
+    handle.remove_mo(mo)
+    handle.commit()
     return mo
 
 
-def deprovision_ucs_pod(handle, vlan_number):
-    vlan_name = config.OBJECT_PREFIX.format(vlan_number)
-    dn = 'fabric/lan/net-group-DVS-01/net-{}'.format(vlan_name)
+def deprovision_ucs_pod(handle, vlan_name, vlan_number):
+    # UCS vlans can only be 32 chars and cannot contain '|'
+    vlan_name = vlan_name[-32:].replace('|', '-')
+
+    dn = config.VLAN_GROUP_DN + '/net-{}'.format(vlan_name)
     mo = handle.query_dn(dn)
     if mo:
-        print "attempting to delete DN: {}".format(dn)
         handle.remove_mo(mo)
         handle.commit()
         remove_vlan(handle, vlan_number, vlan_name)
-    else:
-        print "Could not find, likely already cleaned up from previous link"
 
 
-def provision_ucs_pod(handle, vlan_number):
-    # TODO remove constant
-    vlan_name = config.OBJECT_PREFIX.format(vlan_number)
+def provision_ucs_pod(handle, vlan_name, vlan_number):
+    # UCS vlans can only be 32 chars and cannot contain '|'
+    vlan_name = vlan_name[-32:].replace('|', '-')
 
     # Add vlan globally
     add_vlan(handle, vlan_number, vlan_name)
 
     # Add vlan to pool
-    try:
-        # TODO remove constant
-
-        add_to_pool = FabricPooledVlan('fabric/lan/net-group-DVS-01', vlan_name)
-        handle.add_mo(add_to_pool)
-        handle.commit()
-
-    except UcsException as e:
-        print e
+    # TODO remove constant
+    add_to_pool = FabricPooledVlan(config.VLAN_GROUP_DN, vlan_name)
+    mo = handle.query_dn(add_to_pool.dn)
+    if mo is None:
+        try:
+            handle.add_mo(add_to_pool)
+            handle.commit()
+        except UcsException as e:
+            if 'already exists' in str(e):
+                pass
+            else:
+                raise e

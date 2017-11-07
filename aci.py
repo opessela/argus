@@ -4,7 +4,7 @@ from acitoolkit import BaseACIObject
 class VlanBinding(BaseACIObject):
 
     def __init__(self, *args, **kwargs):
-        self._attributes = None
+        self._attributes = dict()
 
     def __str__(self):
         return self.dn
@@ -17,6 +17,34 @@ class VlanBinding(BaseACIObject):
         :returns: list of strings containing APIC class names
         """
         return ['l2RsPathDomAtt']
+
+    @classmethod
+    def get(cls, session, name=None):
+        """
+        Gets all of the virtual switches from the APIC.
+        :param session: the instance of Session used for APIC communication
+        :returns: a list of vswitch objects
+        """
+        url = '/api/class/l2RsPathDomAtt.json'
+        data = session.get(url).json()['imdata']
+        apic_class = cls._get_apic_classes()[0]
+        resp = []
+        for object_data in data:
+
+            obj = cls()
+            attribute_data = object_data[apic_class]['attributes']
+
+            obj._populate_from_attributes(attribute_data)
+            resp.append(obj)
+
+        return resp
+
+    def _populate_from_attributes(self, attributes):
+        """Fills in an object with the desired attributes.
+           Overridden by inheriting classes to provide the specific attributes
+           when getting objects from the APIC.
+        """
+        self._attributes = attributes
 
 
     @classmethod
@@ -47,7 +75,12 @@ class VlanBinding(BaseACIObject):
 
     @property
     def vlan(self):
-        return self._attributes['dn'].split('vlan-[vlan-')[1].split(']')[0]
+        try:
+            vlan = self._attributes['dn'].split('vlan-[vlan-')[1].split(']')[0]
+            return vlan
+        except IndexError:
+            print "Could not derive vlan for DN {}".format(self.dn)
+
 
     @property
     def node(self):

@@ -5,8 +5,7 @@ UCSM_IP = '10.94.140.115'
 
 # Aci credentials will be gathered dynaically
 
-OBJECT_PREFIX = 'argus-{}'
-
+VLAN_GROUP_DN = 'fabric/lan/net-group-aci-dvs-01'
 
 UCSM_VIP_MAP = {
     '192.168.1.221': '10.94.140.117',
