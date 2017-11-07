@@ -25,3 +25,6 @@ UCS = {
         "FI_B": '192.168.1.202'
     }
 }
+
+GARBAGE_COLLECTION_INTERVAL=30
+DELIMTER = "--"

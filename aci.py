@@ -1,5 +1,5 @@
 from acitoolkit import BaseACIObject
-
+import config
 
 class VlanBinding(BaseACIObject):
 
@@ -267,7 +267,10 @@ def get_port_from_lldp_dn(dn):
 
 def fixup_epg_name(name):
     # Tenant-app-epg becomes tn-Tenant/ap-app/epg-epg
-    words = name.split('-')
-    dn = "tn-{}/ap-{}/epg-{}".format(words[0], words[1], "-".join(words[2:]))
+    words = name.split(config.DELIMTER)
+    if len(words) < 3:
+        return
+    else:
+        dn = "tn-{}/ap-{}/epg-{}".format(words[0], words[1], words[2:])
     return dn
 
