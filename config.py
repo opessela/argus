@@ -1,5 +1,5 @@
 # ucs info credentials
-UCSM_LOGIN= 'admin'
+UCSM_LOGIN = 'admin'
 UCSM_PASSWORD = 'P@ssw0rd'
 UCSM_IP = '10.94.140.115'
 
@@ -26,5 +26,5 @@ UCS = {
     }
 }
 
-GARBAGE_COLLECTION_INTERVAL=30
+GARBAGE_COLLECTION_INTERVAL = 30
 DELIMTER = "--"

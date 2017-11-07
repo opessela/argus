@@ -9,7 +9,6 @@ class VlanBinding(BaseACIObject):
     def __str__(self):
         return self.dn
 
-
     @classmethod
     def _get_apic_classes(cls):
         """
@@ -46,7 +45,6 @@ class VlanBinding(BaseACIObject):
         """
         self._attributes = attributes
 
-
     @classmethod
     def get_event(cls, session):
         """
@@ -80,7 +78,6 @@ class VlanBinding(BaseACIObject):
             return vlan
         except IndexError:
             return None
-
 
     @property
     def node(self):
@@ -180,7 +177,6 @@ class PortGroup(BaseACIObject):
         else:
             url = '/api/class/{}.json'.format(cls._get_apic_classes()[0])
 
-
         data = session.get(url).json()['imdata']
         apic_class = cls._get_apic_classes()[0]
         resp = []
@@ -216,6 +212,7 @@ class ManagedTopology(dict):
             if mgmt_ip in vip_map.keys():
                 topology[node][port] = mgmt_ip
         return topology
+
 
 def get_vlan_number_from_dn(dn):
     """
@@ -264,6 +261,7 @@ def get_port_from_lldp_dn(dn):
         return mod_port
     else:
         return None
+
 
 def fixup_epg_name(name):
     # Tenant-app-epg becomes tn-Tenant/ap-app/epg-epg

@@ -2,3 +2,4 @@ ucsmsdk
 acitoolkit
 flask-restful
 pymongo
+pyyaml

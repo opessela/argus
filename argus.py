@@ -12,7 +12,7 @@ import config
 
 HEADERS = {"Content-Type": "application/json"}
 
-
+@run_async
 def perform_garbage_collection():
     """
     periodically ran to ensure that no unused vlans are provisioned on UCS domains
@@ -60,9 +60,9 @@ def perform_garbage_collection():
                         print "We should probably delete vlan {} encap {}".format(vlan, vlan_id)
                         deprovision_ucs_pod(handle, vlan, vlan_id)
 
-
         handle.logout()
         print("Garbage Collection Completed")
+
 
 def get_bindings_for_fi(session, fi):
     url = '/api/node/class/fvDyPathAtt.json?query-target-filter=' \
@@ -70,9 +70,9 @@ def get_bindings_for_fi(session, fi):
     resp = session.get(url)
     return resp.json()['imdata']
 
+
 @run_async
 def binding_event_handler(session, epg, binding):
-#    if binding.status:
     # create/delete events
     print "Got {} notification for {} using encap {}".format(binding.status, epg, binding.vlan)
     if 'vlan-' in binding.dn and binding.node and binding.port:
@@ -101,6 +101,7 @@ def binding_event_handler(session, epg, binding):
 
         else:
             print("None Found")
+
 
 @run_async
 def send_event(action, epg, node, port, vlan, ucsm):
@@ -146,7 +147,6 @@ if __name__ == "__main__":
     print("Creating subscription to ACI fabric")
     print("=" * 80)
     subscription = VlanBinding.subscribe(apic)
-
 
     while True:
         if VlanBinding.has_events(apic):
