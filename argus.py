@@ -5,14 +5,13 @@ import datetime
 from acitoolkit import Session, Credentials
 from ucsmsdk.ucshandle import UcsHandle
 from ucs import provision_ucs_pod, deprovision_ucs_pod, get_vlan_id_by_name
-from aci import VlanBinding, ManagedTopology, PortGroup, fixup_epg_name
+from aci import VlanBinding, ManagedTopology, PortGroup, fixup_epg_name, get_bindings_for_lsnode
 from utils import run_async
 
 import config
 
 HEADERS = {"Content-Type": "application/json"}
 
-@run_async
 def perform_garbage_collection():
     """
     periodically ran to ensure that no unused vlans are provisioned on UCS domains
@@ -41,7 +40,7 @@ def perform_garbage_collection():
         fis = config.UCS[vip]
         vlans = epgs
         for fi_mgmt_ip in fis.values():
-            bindings_for_fi = get_bindings_for_fi(apic, fi_mgmt_ip)
+            bindings_for_fi = get_bindings_for_lsnode(apic, fi_mgmt_ip)
             print("Reconciling vlans {} with {}".format(vlans, bindings_for_fi))
             for vlan in vlans:
                 print vlan
@@ -64,17 +63,9 @@ def perform_garbage_collection():
         print("Garbage Collection Completed")
 
 
-def get_bindings_for_fi(session, fi):
-    url = '/api/node/class/fvDyPathAtt.json?query-target-filter=' \
-          'and(eq(fvDyPathAtt.targetDn,"topology/pod-1/node-102/sys/lsnode-{}"))'.format(fi)
-    resp = session.get(url)
-    return resp.json()['imdata']
-
-
 @run_async
 def binding_event_handler(session, epg, binding):
     # create/delete events
-    print "Got {} notification for {} using encap {}".format(binding.status, epg, binding.vlan)
     if 'vlan-' in binding.dn and binding.node and binding.port:
         print("Checking for UCS chassis on {} port {}: ".format(binding.node, binding.port)),
         try:
@@ -146,7 +137,7 @@ if __name__ == "__main__":
 
     print("Creating subscription to ACI fabric")
     print("=" * 80)
-    subscription = VlanBinding.subscribe(apic)
+    subscription = VlanBinding.subscribe(apic, only_new=True)
 
     while True:
         if VlanBinding.has_events(apic):

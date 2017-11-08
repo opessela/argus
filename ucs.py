@@ -48,6 +48,18 @@ def remove_vlan(handle, vlan_id, name):
     handle.commit()
     return mo
 
+def check_vlan_provisioned(handle, vlan_name, vlan_number):
+    mo = FabricVlan(parent_mo_or_dn="fabric/lan",
+                    sharing="none",
+                    name=vlan_name[-32:], id=vlan_number)
+    vlan_exists = handle.query_dn(mo.dn)
+    group_member = FabricPooledVlan(config.VLAN_GROUP_DN, vlan_name[-32:])
+    in_group = handle.query_dn(group_member.dn)
+    if vlan_exists and in_group and (mo.id == vlan_exists.id):
+        return True
+    else:
+        return False
+
 
 def deprovision_ucs_pod(handle, vlan_name, vlan_number):
     # UCS vlans can only be 32 chars and cannot contain '|'
@@ -75,7 +87,6 @@ def provision_ucs_pod(handle, vlan_name, vlan_number):
     add_vlan(handle, vlan_number, vlan_name)
 
     # Add vlan to pool
-    # TODO remove constant
     add_to_pool = FabricPooledVlan(config.VLAN_GROUP_DN, vlan_name[-32:])
     mo = handle.query_dn(add_to_pool.dn)
     if mo is None:

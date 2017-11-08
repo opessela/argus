@@ -272,3 +272,10 @@ def fixup_epg_name(name):
         dn = "tn-{}/ap-{}/epg-{}".format(words[0], words[1], words[2:])
     return dn
 
+
+def get_bindings_for_lsnode(session, fi):
+    url = '/api/node/class/fvDyPathAtt.json?query-target-filter=' \
+          'and(eq(fvDyPathAtt.targetDn,"topology/pod-1/node-102/sys/lsnode-{}"))'.format(fi)
+    resp = session.get(url)
+    return resp.json()['imdata']
+
