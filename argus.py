@@ -132,8 +132,8 @@ if __name__ == "__main__":
         epg = PortGroup.get(apic, encap=b.vlan)
         binding_event_handler(apic, epg, b)
 
-    perform_garbage_collection()
-    last_garbage_collection = datetime.datetime.now()
+    # perform_garbage_collection()
+    # last_garbage_collection = datetime.datetime.now()
 
     print("Creating subscription to ACI fabric")
     print("=" * 80)
@@ -150,10 +150,10 @@ if __name__ == "__main__":
                 binding_event_handler(apic, epg, binding)
 
         # Run garbage collection periodically
-        if config.GARBAGE_COLLECTION_INTERVAL:
-            if config.GARBAGE_COLLECTION_INTERVAL < 15:
-                config.GARBAGE_COLLECTION_INTERVAL = 15
-            delta = datetime.datetime.now() - last_garbage_collection
-            if delta > datetime.timedelta(minutes=config.GARBAGE_COLLECTION_INTERVAL):
-                perform_garbage_collection()
-                last_garbage_collection = datetime.datetime.now()
+        # if config.GARBAGE_COLLECTION_INTERVAL:
+        #     if config.GARBAGE_COLLECTION_INTERVAL < 15:
+        #         config.GARBAGE_COLLECTION_INTERVAL = 15
+        #     delta = datetime.datetime.now() - last_garbage_collection
+        #     if delta > datetime.timedelta(minutes=config.GARBAGE_COLLECTION_INTERVAL):
+        #         perform_garbage_collection()
+        #         last_garbage_collection = datetime.datetime.now()
