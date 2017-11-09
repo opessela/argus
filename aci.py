@@ -5,9 +5,14 @@ class VlanBinding(BaseACIObject):
 
     def __init__(self, *args, **kwargs):
         self._attributes = dict()
+        self._ucsm = None
 
     def __str__(self):
         return self.dn
+
+    @property
+    def ucsm(self):
+        return self._ucsm
 
     @classmethod
     def _get_apic_classes(cls):
@@ -18,9 +23,12 @@ class VlanBinding(BaseACIObject):
         return ['l2RsPathDomAtt']
 
     @classmethod
-    def get(cls, session, name=None):
+    def get(cls, session, topology=None, vip_map=None):
         """
-        Gets all of the virtual switches from the APIC.
+        Gets all interesting bindings from ACI.
+
+        an intersting binding is one that is determined to have a UCS system attached
+        based on the provided `topology` and `vip_map`
         :param session: the instance of Session used for APIC communication
         :returns: a list of vswitch objects
         """
@@ -32,11 +40,16 @@ class VlanBinding(BaseACIObject):
 
             obj = cls()
             attribute_data = object_data[apic_class]['attributes']
-
             obj._populate_from_attributes(attribute_data)
-            resp.append(obj)
+            try:
+                obj._ucsm = vip_map[topology[obj.node][obj.port]]
+                if obj.vlan:
+                    resp.append(obj)
+            except KeyError:
+                pass
 
         return resp
+
 
     def _populate_from_attributes(self, attributes):
         """Fills in an object with the desired attributes.
