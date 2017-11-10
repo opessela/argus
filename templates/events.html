@@ -1,42 +1,5 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>Argus</title>
-    <link rel="stylesheet" href="../static/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../static/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="../static/css/cui-standard.min.css">
-
-    <script src="../static/js/jquery-3.2.1.min.js"></script>
-    <script src="../static/js/bootstrap.min.js"></script>
-    <script src="../static/js/jquery.dataTables.min.js"></script>
-    <script src="../static/js/dataTables.bootstrap4.min.js"></script>
-
-
-</head>
-<body class="cui">
-    <div class="content-fluid">
-        <main>
-            <header class="header">
-                <div class="header-bar container">
-                    <a class="btn btn--small btn--icon toggle-menu">
-                        <span class="icon-list-menu"></span>
-                    </a>
-                    <a class="header-bar__logo">
-                        <span class="icon-cisco"></span>
-                    </a>
-                    <div class="header-bar__main">
-                        <div class="header-heading">
-                            <h1 class="page-title">Argus Dashboard</h1>
-                        </div>
-                    </div>
-                    <div class="header-toolbar">
-                        <a href="/api/ui">API Documentation</a>
-
-                    </div>
-                </div>
-            </header>
+{% extends 'base_layout.html' %}
+{% block content %}
             <div class="content">
                 <div class="container-fluid">
                     <p>Recent Actions</p>
@@ -89,6 +52,4 @@
     </div>
 
 <script src="../static/js/app.js"></script>
-
-</body>
-</html>
+{% endblock %}

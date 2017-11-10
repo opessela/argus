@@ -1,0 +1,22 @@
+# not used currently, but using for testing.
+ACI:
+  DVS_NAME: aci-dvs-01
+
+UCS:
+  USERNAME: admin
+  PASSWORD: P@ssw0rd
+  DVS_NAME: aci-dvs-01
+  MANAGED_PODS:
+    - 10.94.140.115
+    - 10.94.140.117
+
+  FI_VIP_MAP:
+    192.168.1.221: 10.94.140.117
+    192.168.1.220': 10.94.140.117
+    192.168.1.201': 10.94.140.115
+    192.168.1.202': 10.94.140.115
+
+
+  DELIMTER: --
+
+FULL_SYNC_INTERVAL: 5

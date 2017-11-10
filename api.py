@@ -3,7 +3,7 @@ from flask_restful import Resource, Api
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.json_util import dumps
-
+from views import topology, get_topology
 mongo = MongoClient("mongo")
 
 def output_json(obj, code, headers=None):
@@ -74,9 +74,14 @@ class Events(Resource):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('events.html')
+
 api.add_resource(HelloWorld, '/')
 api.add_resource(Events, '/api/events', '/api/events/<string:id>')
 
+app.add_url_rule('/topology', view_func=topology)
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    get_topology()
+    app.run(debug=True)
+
