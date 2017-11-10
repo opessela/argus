@@ -1,10 +1,29 @@
 {% extends 'base_layout.html' %}
 
 {% block content %}
-<div id="topology">
+<div class="n-topology n-topology-blue" id="topology">
 
 </div>
     <script>
+
+function getAjax(url, success) {
+    var xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState>3 && xhr.status==200) success(xhr.responseText);
+    };
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.send();
+    return xhr;
+}
+
+var topologyData = getAjax('/api/topology', function(data){
+        var json = JSON.parse(data);
+        console.log(json)
+        return json
+        }
+        );
+
 (function (nx) {
     /**
      * define application
@@ -32,11 +51,15 @@
                         linkType: 'curve'
                     },
                     // show node's icon, could change to false to show dot
-                    showIcon: true
+                    showIcon: true,
+                    identityKey: 'id'
                 });
 
                 //set data to topology
-                topo.data({{ topologyData | safe }});
+
+                //console.log("data is" + topologyData.response)
+                var data = JSON.parse(topologyData.response)
+                topo.data(data);
                 topo.attach(this)
                 // attach topology to document
                 // topo.attach(document.getElementById('topology'));

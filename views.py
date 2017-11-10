@@ -2,6 +2,7 @@ from flask import Flask, render_template
 from flask_restful import Api, Resource
 import os
 from acitoolkit.acitoolkit import Session, Tenant
+from ucsmsdk.ucshandle import UcsHandle
 import json
 from collections import OrderedDict
 import config
@@ -20,20 +21,47 @@ else:
 SESSION = Session(APIC_URL, APIC_LOGIN, APIC_PASSWORD)
 SESSION.login()
 
+
 # Eliminate Trailing slash
 if APIC_URL.endswith('/'):
     APIC_URL = APIC_URL[:-1]
+
+def sample_data():
+    data = {
+        "nodes": [
+            {"id": 100, "x": 410, "y": 100, "name": "12K-1"},
+            {"id": 101, "x": 410, "y": 280, "name": "12K-2"},
+            {"id": 102, "x": 660, "y": 280, "name": "Of-9k-03"},
+            {"id": 103, "x": 660, "y": 100, "name": "Of-9k-02"},
+            {"id": 104, "x": 180, "y": 190, "name": "Of-9k-01"}
+        ],
+        "links": [
+            {"source": 0, "target": 1},
+            {"source": 1, "target": 2},
+            {"source": 1, "target": 3},
+            {"source": 4, "target": 1},
+            {"source": 2, "target": 3},
+            {"source": 2, "target": 0},
+            {"source": 3, "target": 0},
+            {"source": 3, "target": 0},
+            {"source": 3, "target": 0},
+            {"source": 0, "target": 4},
+            {"source": 0, "target": 4},
+            {"source": 0, "target": 3}
+        ]
+    }
+    print data
+    return data
 
 
 def get_topology():
     node_ret = list()
     nodes = SESSION.get('/api/class/fabricNode.json').json()['imdata']
-    print nodes
     s_count = 0
     l_count = 0
     c_count = 0
     for n in nodes:
-        d = OrderedDict()
+        d = dict()
         d['id'] = int(n['fabricNode']['attributes']['id'])
         d['name'] = str(n['fabricNode']['attributes']['name'])
         d['foo'] = 'bar'
@@ -77,8 +105,7 @@ def get_topology():
 
     node_ret = node_ret + fis
 
-
-    print fis
+    # ACI links
     links = SESSION.get('/api/class/fabricLink.json').json()['imdata']
     link_ret = list()
     for l in links:
@@ -87,14 +114,25 @@ def get_topology():
         d['source'] = int(l['fabricLink']['attributes']['n1'])
         d['target'] = int(l['fabricLink']['attributes']['n2'])
         link_ret.append(d)
-    ret = json.dumps({'nodes': node_ret,
-                       'links': link_ret}, indent=2)
-    print ret
+    ret = {'nodes': node_ret,
+          'links': link_ret}
+
+    # UCS links
+
+
     return ret
 
 
-def topology():
 
-    return render_template('topology.html', topologyData=get_topology())
+class TopologyEndpoint(Resource):
+    def get(self):
+        sample = sample_data()
+        print sample
+        topo = get_topology()
+        print topo
+        return topo
+
+def topology():
+    return render_template('topology.html')
 
 
