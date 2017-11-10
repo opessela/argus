@@ -2,7 +2,7 @@ from flask import Flask, render_template
 from flask_restful import Api, Resource
 import os
 from acitoolkit.acitoolkit import Session, Tenant
-from ucsmsdk.ucshandle import UcsHandle
+from aci import ManagedTopology
 import json
 from collections import OrderedDict
 import config
@@ -50,13 +50,15 @@ def sample_data():
             {"source": 0, "target": 3}
         ]
     }
-    print data
+
     return data
 
 
 def get_topology():
+
     node_ret = list()
     nodes = SESSION.get('/api/class/fabricNode.json').json()['imdata']
+
     s_count = 0
     l_count = 0
     c_count = 0
@@ -70,17 +72,19 @@ def get_topology():
             s_count += 1
             d['y'] = 50
             d['x'] = s_count * 200
+            node_ret.append(d)
         elif n['fabricNode']['attributes']['role'] == 'leaf':
             l_count += 1
             d['y'] = 250
             d['x'] = l_count * 200
-        else:
-            c_count += 1
-            d['y'] = 400
-            d['x'] = c_count * 200
-            # must be a node/controller
+            node_ret.append(d)
+        # else:
+        #     c_count += 1
+        #     d['y'] = 400
+        #     d['x'] = c_count * 200
+        #     # must be a node/controller
 
-        node_ret.append(d)
+
 
     managed_fis = set(config.UCSM_VIP_MAP.keys())
     fi_url = '/api/class/fabricLooseNode.json'
@@ -103,7 +107,8 @@ def get_topology():
         node_ret.append(d)
 
 
-    node_ret = node_ret + fis
+
+
 
     # ACI links
     links = SESSION.get('/api/class/fabricLink.json').json()['imdata']
@@ -114,11 +119,27 @@ def get_topology():
         d['source'] = int(l['fabricLink']['attributes']['n1'])
         d['target'] = int(l['fabricLink']['attributes']['n2'])
         link_ret.append(d)
-    ret = {'nodes': node_ret,
-          'links': link_ret}
 
     # UCS links
+    topology = ManagedTopology.get(SESSION, config.UCSM_VIP_MAP)
+    ucs_links = list()
+    for k,v in topology.items():
+        if topology[k]:
+            for i, fi in topology[k].items():
+                l = dict()
+                l['source'] = k
+                l['target'] = fi
+                link_ret.append(l)
 
+    print link_ret
+
+
+
+    # for k, v in topology.items():
+    #     print k,v
+
+    ret = {'nodes': node_ret,
+          'links': link_ret}
 
     return ret
 
@@ -127,9 +148,9 @@ def get_topology():
 class TopologyEndpoint(Resource):
     def get(self):
         sample = sample_data()
-        print sample
+
         topo = get_topology()
-        print topo
+
         return topo
 
 def topology():
