@@ -3,6 +3,7 @@ from flask_restful import Api, Resource
 import os
 from acitoolkit.acitoolkit import Session, Tenant
 from aci import ManagedTopology
+from ucsmsdk.ucshandle import UcsHandle
 import json
 from collections import OrderedDict
 import config
@@ -157,3 +158,26 @@ def topology():
     return render_template('topology.html')
 
 
+def resources():
+    pods = list()
+
+    for pod in config.UCS.keys():
+        handle = UcsHandle(pod, config.UCSM_LOGIN, config.UCSM_PASSWORD)
+        handle.login()
+        fis = handle.query_classid('swVlanPortNs')
+        data = dict()
+        data["vip"] = pod
+        for fi in fis:
+            current = fi.total_vlan_port_count
+            max = fi.vlan_comp_on_limit
+            # set to artifical value for effect
+            #max = 2000
+
+            data[fi.switch_id] = {"current": fi.total_vlan_port_count,
+                                  #"max": fi.vlan_comp_on_limit,
+                                  "max": max,
+                                  "percentage": int(100 * float(current)/float(max))
+                                  }
+        pods.append(data)
+    print pods
+    return render_template('resources.html', pods=pods)
