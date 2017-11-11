@@ -3,7 +3,13 @@ services:
 
   web:
     restart: always
-    build: .
+    build:
+      context: .
+      args:
+        - http_proxy
+        - https_proxy
+        - HTTPS_PROXY
+        - HTTP_PROXY
     command: "python api.py"
     links:
       - mongo:mongo
@@ -23,7 +29,13 @@ services:
 
   argus:
     restart: always
-    build: .
+    build:
+      context: .
+      args:
+        - http_proxy
+        - https_proxy
+        - HTTPS_PROXY
+        - HTTP_PROXY
     command: "python argus.py"
     links:
       - mongo:mongo
