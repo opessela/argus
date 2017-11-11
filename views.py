@@ -79,6 +79,7 @@ def get_topology():
             d['y'] = 250
             d['x'] = l_count * 200
             node_ret.append(d)
+        # we dont care about APIC controllers really
         # else:
         #     c_count += 1
         #     d['y'] = 400
@@ -92,7 +93,6 @@ def get_topology():
     resp = SESSION.get(fi_url)
     fis = resp.json()['imdata']
     fis = [ln for ln in fis if ln['fabricLooseNode']['attributes']['id'] in managed_fis]
-    fi_count = 0
     for fi in fis:
 
         d = OrderedDict()
@@ -104,12 +104,7 @@ def get_topology():
         c_count +=1
         d['x'] = c_count * 200
 
-
         node_ret.append(d)
-
-
-
-
 
     # ACI links
     links = SESSION.get('/api/class/fabricLink.json').json()['imdata']
@@ -131,13 +126,6 @@ def get_topology():
                 l['source'] = k
                 l['target'] = fi
                 link_ret.append(l)
-
-    print link_ret
-
-
-
-    # for k, v in topology.items():
-    #     print k,v
 
     ret = {'nodes': node_ret,
           'links': link_ret}
@@ -183,8 +171,7 @@ def resources():
 
 
 def leaf_capacity():
-    capacity_url = '/api/class/eqptcapacityEntity.json?query-target=s' \
-                   'elf' \
+    capacity_url = '/api/class/eqptcapacityEntity.json?query-target=self' \
                    '&rsp-subtree-include=stats' \
                    '&rsp-subtree-class=' \
                    'eqptcapacityVlanUsage5min,' \
@@ -207,7 +194,7 @@ def leaf_capacity():
                 else:
                     percentage = "N/A"
                 node['vlan'] = {"current": current, "max": maximum, "percentage": percentage}
-
+            # collect mac usage
             elif 'eqptcapacityL2Usage5min' in capentity:
                 current = capentity['eqptcapacityL2Usage5min']['attributes']['localEpCum']
                 maximum =  capentity['eqptcapacityL2Usage5min']['attributes']['localEpCapCum']
@@ -216,7 +203,7 @@ def leaf_capacity():
                 else:
                     percentage = "N/A"
                 node['mac'] = {"current": current, "max": maximum, "percentage": percentage}
-
+            # collect epg usage
             elif 'eqptcapacityPolUsage5min' in capentity:
                 current = capentity['eqptcapacityPolUsage5min']['attributes']['polUsageCum']
                 maximum = capentity['eqptcapacityPolUsage5min']['attributes']['polUsageCapCum']
@@ -226,8 +213,5 @@ def leaf_capacity():
                     percentage = "N/A"
                 node['epg'] = {"current": current, "max": maximum, "percentage": percentage}
         ret.append(node)
-
-    print ret
-
 
     return render_template('resources-aci.html', capdata=ret)
