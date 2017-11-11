@@ -3,7 +3,8 @@ from flask_restful import Resource, Api
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.json_util import dumps
-from views import topology, get_topology, TopologyEndpoint, resources
+from views import topology, get_topology, TopologyEndpoint, resources, leaf_capacity
+
 from collections import OrderedDict
 mongo = MongoClient("mongo")
 
@@ -83,9 +84,10 @@ api.add_resource(Events, '/api/events', '/api/events/<string:id>')
 api.add_resource(TopologyEndpoint, '/api/topology')
 
 app.add_url_rule('/topology', view_func=topology)
-app.add_url_rule('/resources', view_func=resources)
+app.add_url_rule('/resources/ucs', endpoint='resources-ucs', view_func=resources)
+app.add_url_rule('/resources/aci', endpoint='resources-aci', view_func=leaf_capacity)
 
 if __name__ == '__main__':
-    get_topology()
+
     app.run(debug=True)
 

@@ -179,5 +179,55 @@ def resources():
                                   "percentage": int(100 * float(current)/float(max))
                                   }
         pods.append(data)
-    print pods
-    return render_template('resources.html', pods=pods)
+    return render_template('resources-ucs.html', pods=pods)
+
+
+def leaf_capacity():
+    capacity_url = '/api/class/eqptcapacityEntity.json?query-target=s' \
+                   'elf' \
+                   '&rsp-subtree-include=stats' \
+                   '&rsp-subtree-class=' \
+                   'eqptcapacityVlanUsage5min,' \
+                   'eqptcapacityPolUsage5min,' \
+                   'eqptcapacityL2Usage5min'
+    resp = SESSION.get(capacity_url)
+    ret = list()
+    capdata = resp.json()['imdata']
+    for fn in capdata:
+
+        node = dict()
+        node['name'] = fn['eqptcapacityEntity']['attributes']['dn'].split('/sys')[0]
+        for capentity in fn['eqptcapacityEntity']['children']:
+            # collect vlan usage
+            if 'eqptcapacityVlanUsage5min' in capentity:
+                current = capentity['eqptcapacityVlanUsage5min']['attributes']['totalCum']
+                maximum =  capentity['eqptcapacityVlanUsage5min']['attributes']['totalCapCum']
+                if not maximum:
+                    percentage = int(100 * float(current)/float(maximum))
+                else:
+                    percentage = "N/A"
+                node['vlan'] = {"current": current, "max": maximum, "percentage": percentage}
+
+            elif 'eqptcapacityL2Usage5min' in capentity:
+                current = capentity['eqptcapacityL2Usage5min']['attributes']['localEpCum']
+                maximum =  capentity['eqptcapacityL2Usage5min']['attributes']['localEpCapCum']
+                if not maximum:
+                    percentage = int(100 * float(current)/float(maximum))
+                else:
+                    percentage = "N/A"
+                node['mac'] = {"current": current, "max": maximum, "percentage": percentage}
+
+            elif 'eqptcapacityPolUsage5min' in capentity:
+                current = capentity['eqptcapacityPolUsage5min']['attributes']['polUsageCum']
+                maximum = capentity['eqptcapacityPolUsage5min']['attributes']['polUsageCapCum']
+                if not maximum:
+                    percentage = int(100 * float(current)/float(maximum))
+                else:
+                    percentage = "N/A"
+                node['epg'] = {"current": current, "max": maximum, "percentage": percentage}
+        ret.append(node)
+
+    print ret
+
+
+    return render_template('resources-aci.html', capdata=ret)

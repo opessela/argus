@@ -1,0 +1,35 @@
+{% extends 'resources_layout.html' %}
+{% set active_sub_nav = "resources-aci" %}
+
+{% block main_panel %}
+
+
+    <div class="content">
+
+        <div class="responsive-table">
+            <p>With Striping (default)</p>
+            <table class="table table--bordered">
+                <thead>
+                <tr>
+                    <th>Node</th>
+                    <th>Vlan Resources</th>
+                    <th>Endpoint Resources</th>
+                    <th>EPG Resources</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for k in capdata %}
+                    <tr role="row" class="odd">
+                    <td class=""><h5>{{ k['name'] }}</h5></td>
+                    <td class=""><h5>{{ k['vlan']['current'] }}/{{ k['vlan']['max'] }}</h5></td>
+                    <td class=""><h5>{{ k['mac']['current'] }}/{{ k['mac']['max'] }}</h5></td>
+                    <td class=""><h5>{{ k['epg']['current'] }}/{{ k['mac']['max'] }}</h5></td>
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'base_layout.html' %}
+
+{% set main_panel_nav_bar = [
+    ('resources-ucs', 'UCS '),
+    ('resources-aci', 'ACI')
+  ]-%}
+
+{% block content %}
+    <div class="content">
+
+        <div class="secondary-tabs">
+            <ul class="tabs tabs--tall">
+                {% for (id, caption) in main_panel_nav_bar %}
+
+                    <li id="tab-aci" class="tab {% if id == active_sub_nav %}active{% endif %}">
+                        <a href="{{ url_for(id) }}">
+                            <div class="tab-heading" title="{{ caption }}"><h5>{{ caption }}</h5></div>
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+            {% block main_panel %}
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}
