@@ -6,21 +6,44 @@
   ]-%}
 
 {% block content %}
+    <script src="/static/js/resources.js"></script>
     <div class="content">
+
 
         <div class="secondary-tabs">
             <ul class="tabs tabs--tall">
                 {% for (id, caption) in main_panel_nav_bar %}
 
                     <li id="tab-aci" class="tab {% if id == active_sub_nav %}active{% endif %}">
-                        <a href="{{ url_for(id) }}">
+                        <a href="#" onclick='href_with_loader("{{ url_for(id) }}")'>
                             <div class="tab-heading" title="{{ caption }}"><h5>{{ caption }}</h5></div>
                         </a>
                     </li>
                 {% endfor %}
             </ul>
-            {% block main_panel %}
-            {% endblock %}
+            <div style="display: none;" id="loading" class="outer">
+                <div class="middle">
+                    <div class="inner">
+                        <br><br><br><br>
+
+                        <div id="loading-dots" class="loading-dots loading-dots--success">
+
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div id="main-panel-content">
+
+                {% block main_panel %}
+                {% endblock %}
+            </div>
+
         </div>
     </div>
 {% endblock %}
