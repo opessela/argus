@@ -89,7 +89,7 @@ app.add_url_rule('/resources/ucs', endpoint='resources-ucs', view_func=resources
 app.add_url_rule('/resources/aci', endpoint='resources-aci', view_func=leaf_capacity)
 
 if __name__ == '__main__':
-    if os.getenv("ARGUS_ENV" == 'dev':
+    if os.getenv("ARGUS_ENV") == 'dev':
         app.run(host='127.0.0.1', debug=True)
     else:
         app.run(host='0.0.0.0')
