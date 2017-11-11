@@ -26,6 +26,10 @@ services:
       LOGBIN_API: http://web:5000/api/logbin
       REGIONS_API: http://web:5000/api/regions
       IMAGES_API: http://web:5000/api/images
+      APIC_LOGIN: admin
+      APIC_URL: http://10.94.140.72
+      APIC_PASSWORD: ins3965!
+      ARGUS_BASE_API: http://web:5000/api
 
   argus:
     restart: always
