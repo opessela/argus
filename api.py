@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, render_template, make_response
 from flask_restful import Resource, Api
 from pymongo import MongoClient
@@ -88,6 +89,7 @@ app.add_url_rule('/resources/ucs', endpoint='resources-ucs', view_func=resources
 app.add_url_rule('/resources/aci', endpoint='resources-aci', view_func=leaf_capacity)
 
 if __name__ == '__main__':
-
-    app.run(debug=True)
-
+    if os.getenv("ARGUS_ENV" == 'dev':
+        app.run(host='127.0.0.1', debug=True)
+    else:
+        app.run(host='0.0.0.0')
