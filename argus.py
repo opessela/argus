@@ -42,7 +42,7 @@ def full_sync():
                 print("Adding {}".format(epg))
                 ucsm.provision_portgroup(epg, v)
             except KeyError:
-                print("Skipping {} as we were unable to determine port-group")
+                print("Skipping {} as we were unable to determine port-group".format(epg))
 
         # verify that all aci_vlans exist in the vlan group
         vlan_group_members = ucsm.get_vlan_group_members()
