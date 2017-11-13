@@ -37,9 +37,12 @@ def full_sync():
         missing_vlans = aci_vlans.difference(ucs_vlans)
         print "Need to provision {}".format(missing_vlans)
         for v in missing_vlans:
-            epg = port_groups_by_vlan[v]
-            print("Adding {}".format(epg))
-            ucsm.provision_portgroup(epg, v)
+            try:
+                epg = port_groups_by_vlan[v]
+                print("Adding {}".format(epg))
+                ucsm.provision_portgroup(epg, v)
+            except KeyError:
+                print("Skipping {} as we were unable to determine port-group")
 
         # verify that all aci_vlans exist in the vlan group
         vlan_group_members = ucsm.get_vlan_group_members()
