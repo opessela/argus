@@ -49,8 +49,18 @@ def full_sync():
         vlan_group_members = set([v.name for v in vlan_group_members])
 
         print("VLAN group members {}".format(vlan_group_members))
+
+        # validates that we have a portgroup for each vlan
+        validated_group_members = list()
+        for v in aci_vlans:
+            try:
+                validated_group_members.append(port_groups_by_vlan[v])
+            except KeyError:
+                print("Skipping {} as we were unable to determine port-group".format(v))
+
+
         expected_group_members = set(map(lambda x : ucsm.ucs_name_from_portgroup(x),
-                                     [port_groups_by_vlan[v] for v in aci_vlans]))
+                                     validated_group_members))
         print("Expected Group members {}".format(expected_group_members))
         print port_groups_by_name.keys()
         if not expected_group_members == vlan_group_members:
