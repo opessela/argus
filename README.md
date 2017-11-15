@@ -36,7 +36,7 @@ Step 2) Change local directory to the argus project directory.
 cd argus
 ```
 
-Step 3) Edit the docker-compose.yml file in the argus project directory to configure ACI integration. You will need the APIC address and credentials. Currently there two locations as shown below.
+Step 3) Edit the docker-compose.yml file in the argus project directory to configure ACI integration. You will need the APIC address and credentials. Currently there are two locations as shown below.
 
 ```
   web:
