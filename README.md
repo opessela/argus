@@ -64,7 +64,7 @@ Step 3) Edit the docker-compose.yml file in the argus project directory to confi
 
 Step 4) Edit the config.py file in the argus project directory to configure UCS integration. 
 
-UCSM Credentials:
+Set UCSM Credentials.
 ```
 # ucs info credentials
 UCSM_LOGIN = 'UCSM-USERNAME'
@@ -114,10 +114,15 @@ UCS = {
 
 
 Step X) Build the argus container environement with Docker-Compose.
+```
 docker-compose build
+```
 
 Step X) Bring the argus container environement online with Docker-Compose.
+```
 docker-compose up -d
+```
 
+Step X) View log via CLI.
 
-
+Step X) GUI
