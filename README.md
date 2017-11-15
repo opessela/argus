@@ -42,7 +42,6 @@ Step 3) Edit the docker-compose.yml file in the argus project directory to confi
   web:
     ...
     ...
-    ...
     environment:
       ...
       ...
@@ -54,7 +53,6 @@ Step 3) Edit the docker-compose.yml file in the argus project directory to confi
 
 ```
   argus:
-    ...
     ...
     ...
     environment:
@@ -74,7 +72,45 @@ UCSM_PASSWORD = 'UCSM-PASSWORD'
 ```
 ***In the event of multiple UCS Domains, these credentials need to be consistant.***
 
+Set the variable for the VLAN Group in UCSM associated with the vNIC Template tied to the Service Profile used for the host servers.
+```
+VLAN_GROUP_DN = 'fabric/lan/net-group-YOUR-DVS-01'
+DVS_NAME = 'YOUR-DVS-01'
+```
+***Need to add a section showing UCS Config of VLAN Groups and how to get the DN. Need clarification on what DVS_NAME = 'YOUR-DVS-01' actually does.***
 
+Set the variable for the VLAN Group in UCSM associated with the Uplink Ports/Port Channels. This is required in a disjoint L2 situation.
+```
+UPLINK_VLAN_GROUP_DN = 'fabric/lan/net-group-Uplink-YOUR-DVS-01'
+UPLINK_DVS_NAME = 'Uplink-YOUR-DVS-01'
+```
+***Need to add a section showing UCS Config of VLAN Groups and how to get the DN. Need clarification on what UPLINK_DVS_NAME = 'Uplink-YOUR-DVS-01' actually does.***
+
+Configure UCSM VIP mappings to Fabric Interconnect real IP addresses. The column of IP addresses on the left are for the real IP's of the Fabric Interconnects while the column of IP addresses on the right are for the VIP of the UCSM.
+```
+UCSM_VIP_MAP = {
+    '111.111.111.112': '111.111.111.111',
+    '111.111.111.113': '111.111.111.111',
+    '222.222.222.222': '222.222.222.221',
+    '222.222.222.223': '222.222.222.221'
+}
+```
+***The example above is for TWO UCS Domains. If you only have one you will need to comment out or delete the lines not used. If you have more than two domains you will need to add entries following the pattern set above.***
+
+Configure Fabric Interconnect real IP address mappings to UCSM VIPs.
+```
+UCS = {
+    '111.111.111.111': {
+        "FI_A": '111.111.111.112',
+        "FI_B": '111.111.111.113'
+    },
+    '222.222.222.221': {
+        "FI_A": '222.222.222.222',
+        "FI_B": '222.222.222.223'
+    }
+}
+```
+***The example above is for TWO UCS Domains. If you only have one you will need to comment out or delete the lines not used. If you have more than two domains you will need to add entries following the pattern set above.***
 
 
 Step X) Build the argus container environement with Docker-Compose.
