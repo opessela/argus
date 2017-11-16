@@ -171,7 +171,7 @@ Argus is capable of reporting the resource utilization of both UCS and ACI envir
 
 
 ### Events
-Argus tracks and stores all actions taken as Events. Actions include the creation, modification, and deletion of VLANs. The screen captures below show the granularity of the contextual data collected and recorded everytime an action is taken by Argus. 
+Argus tracks and archives every action taken as an Event. Actions include the creation, modification, and deletion of VLANs. The screen captures below show the granularity of the contextual data collected and recorded every time an action is taken by Argus. 
  
 ![](IMAGES/ARGUS-EVENT-VLAN-CREATION.png)
 
