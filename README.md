@@ -123,6 +123,35 @@ Step X) Bring the argus container environement online with Docker-Compose.
 docker-compose up -d
 ```
 
-Step X) View log via CLI.
+Installation Validation:
+Argus should now be up and running in daemon mode. We can validate via CLI by executing "docker-compose ps" from within the argus project directory.
+```
+ucsuser@ucsub01:~/argus$ docker-compose ps
+    Name                  Command             State           Ports
+----------------------------------------------------------------------------
+argus_argus_1   python argus.py               Up
+argus_mongo_1   docker-entrypoint.sh mongod   Up      27017/tcp
+argus_web_1     python api.py                 Up      0.0.0.0:5000->5000/tcp
+ucsuser@ucsub01:~/argus$
+```
 
-Step X) GUI
+Environment logs may also be viewed via CLI by executing "docker-compose logs -f argus" from within the argus project directory.
+``` 
+ucsuser@ucsub01:~/argus$ docker-compose logs -f argus
+```
+
+Argus Web Interface:
+The Argus Web Interface is accessible by default on tcp5000 of the server running the Argus container environement.
+```
+http://{ARGUS-SERVER-IP}:5000
+```
+There are currently three areas of interest within the Argus Web Interface: Topology, Resource Utilization, and Events
+
+The Topology view, as shown below, provides a visualization of the ACI and UCS environment.
+![](IMAGES/ARGUS-EVENT-VLAN-TOPOLOGY.png) 
+
+
+
+
+
+
