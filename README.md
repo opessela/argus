@@ -16,6 +16,7 @@ We will monitor the ACI fabric for notification when policy is provisioned on a 
 the required information from the notification, and then proceed to provision the required last
 mile connectivity onto the appropriate UCS resources (FI's, vNICs, Uplinks)
 
+
 # Usage: Installation and Web Interface
 
 ## Installation
@@ -141,7 +142,8 @@ Environment logs may also be viewed via CLI by executing "docker-compose logs -f
 ucsuser@ucsub01:~/argus$ docker-compose logs -f argus
 ```
 
-## Argus Web Interface:
+## Argus Web Interface
+
 The Argus Web Interface is accessible by default on tcp5000 of the server running the Argus container environement.
 ```
 http://{ARGUS-SERVER-IP}:5000
@@ -154,11 +156,19 @@ The Topology view, as shown below, provides a visualization of the ACI and UCS e
 
 ![](IMAGES/ARGUS-TOPOLOGY.png) 
 
+
 ### Resource Utilization
+Argus is capable of reporting the resource utilization of both UCS and ACI environements.
+
+#### Argus UCS Resource Utilization Reporting
 
 ![](IMAGES/ARGUS-RESOURCE-UTILIZATION-UCS.png)
 
+
+#### Argus ACI Resource Utilization Reporting
+
 ![](IMAGES/ARGUS-RESOURCE-UTILIZATION-ACI.png)
+
 
 ### Events
 
