@@ -100,5 +100,5 @@ ENV/
 # mypy
 .mypy_cache/
 
-# Misc Local OSX Attribure Files
+# Misc Local OSX Attribute Files
 IMAGES/.DS_Store
